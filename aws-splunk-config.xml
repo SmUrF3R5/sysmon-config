@@ -1,0 +1,37 @@
+<!--This file will be used to add exclusions specific to AWS windows servers as well as Splunk Universal forwarder. AWS uses many WMIC commands to get info about the instance running
+    All of these commands should be merged into the EventFiltering\ProcessCreate onmatch=exclude section -->
+
+<EventFiltering>
+
+	<!--SYSMON EVENT ID 1 : PROCESS CREATION-->
+		<!--
+            DATA:   UtcTime, 
+                    ProcessGuid, 
+                    ProcessID, 
+                    Image, 
+                    CommandLine, 
+                    CurrentDirectory, 
+                    User, 
+                    LogonGuid, 
+                    LogonId, 
+                    TerminalSessionId, 
+                    IntegrityLevel, 
+                    Hashes, 
+                    ParentProcessGuid, 
+                    ParentProcessId, 
+                    ParentImage, 
+                    ParentCommandLine
+        -->
+		<ProcessCreate onmatch="exclude">
+		<!--COMMENT:	All process launched will be included, except for what matches a rule below. It's best to be as specific as possible, to
+				avoid user-mode executables imitating other process names to avoid logging, or if malware drops files in an existing directory.
+				Ultimately, you must weigh CPU time checking many detailed rules, against the risk of malware exploiting the blindness created.-->
+			
+            <!--SECTION: AWS Amazon -->		
+            <ParentImage condition="begin with">C:\Program Files\Amazon\SSM\amazon-ssm-agent.exe</ParentImage> <!-- Amazon EC2 processes --> 
+            
+            <!--SECTION: Splunk Universal Forwarder Rules -->
+            <ParentImage condition="begin with">C:\Program Files\SplunkUniversalForwarder\bin\splunkd.exe</ParentImage> <!-- Splunk Universal Forwarder --> 
+           
+        </ProcessCreate>
+</EventFiltering>
